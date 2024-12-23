@@ -1,0 +1,101 @@
+@using CMS.Enums
+@using CMS.Models
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<CMS.Models.CommentModel>
+
+@{
+    ViewData["Title"] = "Lista";
+
+    var userModel = ViewData["CurrentUserModel"] as UserModel;
+}
+
+<h1>Lista</h1>
+
+@if (userModel?.Role == UserRolesEnum.Administrator || userModel?.Role == UserRolesEnum.Moderator)
+{
+    <p><a asp-action="Create">Stwórz nowy rekord</a></p>
+}
+<hr/>
+<div class="row justify-content-center">
+    <div class="col-md-8 mx-auto">
+        <form method="get" asp-action="Index">
+            <div class="form-group">
+                <label for="FilterPageId">@Html.DisplayNameFor(model => model.PageId)</label>
+                <select name="pageId" id="FilterPageId" class="form-control" asp-items="ViewBag.FilterPage">
+                    <option value="">Wszystkie</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="FilterUserId">@Html.DisplayNameFor(model => model.UserId)</label>
+                <select name="userId" id="FilterUserId" class="form-control" asp-items="ViewBag.FilterUser">
+                    <option value="">Wszyscy</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="FilterDescription" class="control-label">@Html.DisplayNameFor(model => model.Description)</label>
+                <input type="text" name="description" id="FilterDescription" value="@ViewBag.FilterDescription" class="form-control"/>
+            </div>
+            <div class="form-group">
+                <label for="FilterStatus">@Html.DisplayNameFor(model => model.Status)</label>
+                <select name="status" id="FilterStatus" class="form-control" asp-items="ViewBag.FilterStatus">
+                    <option value="">Wszystkie</option>
+                </select>
+            </div>
+            <input type="submit" value="Filtruj" class="btn btn-primary"/>
+        </form>
+    </div>
+</div>
+<hr/>
+<table class="table">
+    <thead>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.PageId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.UserId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreatedAt)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Description)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Status)
+        </th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Page.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.User.IdentityUser.UserName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                @if (userModel?.Role == UserRolesEnum.Administrator || userModel?.Role == UserRolesEnum.Moderator)
+                {
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edytuj</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id">Usuń</a>
+                }
+
+                <a asp-action="Details" asp-route-id="@item.Id">Szczegóły</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

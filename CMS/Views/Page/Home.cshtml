@@ -1,0 +1,155 @@
+﻿@using CMS.Enums
+@using CMS.Models
+@model CMS.Models.PageModel
+
+@{
+    ViewData["Title"] = Model.Title;
+
+    var userModel = ViewData["CurrentUserModel"] as UserModel;
+}
+
+<div class="page-details">
+    <img src="data:image/png;base64,@Model.Image" alt="@Model.Title" class="page-image"/>
+    <div class="margin"></div>
+    <h1>@Model.Title</h1>
+    <hr>
+    <div class="d-flex justify-content-between">
+        <p class="mb-0">Data dodania: @Model.CreatedAt.ToString("dd/MM/yyyy")</p>
+        <p class="mb-0">Wyświetlenia: @Model.Entries.Count</p>
+    </div>
+    <hr>
+    <p>Słowa kluczowe: @Model.Keywords</p>
+    <hr>
+    <div class="d-flex justify-content-between">
+        <p class="mb-0">Kategoria: <a href="/Page?categoryId=@Model.Category.Id">@Model.Category.Name</a></p>
+
+        @if (Model.ParentPage != null)
+        {
+            <p class="mb-0">Podstrona nadrzędna: <a href="/cms/@Model.ParentPage.Link">@Model.ParentPage.Title</a></p>
+        }
+    </div>
+    <hr>
+    <p>@Model.Description</p>
+
+    @foreach (var content in Model.Contents)
+    {
+        @if (content.Type == ContentTypesEnum.Image)
+        {
+            <img src="data:image;base64,@content.Value" class="page-image" alt="Content Image"/>
+        }
+        else
+        {
+            @Html.Raw(content.Value)
+        }
+    }
+
+    @if (ViewData["ChildrenPages"] is List<CMS.Models.PageModel> childPages && childPages.Any())
+    {
+        <hr>
+        <p>Podstrony podrzędne:</p>
+        <div class="row">
+            @foreach (var childPage in childPages)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <img src="data:image/png;base64,@childPage.Image" class="card-img-top" alt="@childPage.Title">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="/cms/@childPage.Link" class="text-decoration-none">@childPage.Title</a>
+                            </h5>
+                            <p class="card-text text-muted">@childPage.Description</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <hr>
+    <p>Oceny: (Ilość: @Model.Ratings.Count, Średnia:
+        @{
+            var averageRating = Model.Ratings.Any()
+                ? Model.Ratings.Average(r => (int)r.Rating)
+                : 0;
+        }
+        @averageRating.ToString("0.00"))
+    </p>
+    @if (userModel?.Id != null && userModel?.Id > 0 && !Model.Ratings.Any(r => r.UserId == userModel?.Id))
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-8 mx-auto">
+                <form method="post" asp-action="RatePage">
+                    <input type="hidden" name="pageId" value="@Model.Id" />
+                    <div class="form-group">
+                        <label for="Rating" class="control-label">Ocena</label>
+                        <select name="rating" id="Rating" class="form-control" asp-items="ViewBag.Rating">
+                        </select>
+                    </div>
+                    <input type="submit" value="Zapisz" class="btn btn-primary"/>
+                </form>
+            </div>
+        </div>
+    }
+    <hr>
+    <p>Komentarze:</p>
+    @if (userModel?.Id != null && userModel?.Id > 0)
+    {
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-8 mx-auto">
+                <form method="post" asp-action="CommentPage">
+                    <input type="hidden" name="pageId" value="@Model.Id" />
+                    <input type="hidden" name="commentId" value="@(ViewData["CommentId"] ?? "")" />
+                    <div class="form-group">
+                        <label for="Description" class="control-label">Komentarz</label>
+                        <input name="description" value="@(ViewData["CommentText"] ?? "")" id="Description" class="form-control"/>
+                    </div>
+                    <input type="submit" value="Zapisz" class="btn btn-primary"/>
+                </form>
+            </div>
+        </div>
+    }
+    <div class="container">
+        @foreach (var comment in Model.Comments)
+        {
+            @if (comment.Status == InteractionStatusesEnum.Accepted || (userModel?.Id != null && userModel?.Id > 0 && userModel?.Id == comment.UserId))
+            {
+                <div class="row mb-3">
+                    <div class="col-md-2 text-center">
+                        <p class="mt-2 mb-0">@comment.User.IdentityUser.UserName</p>
+                    </div>
+                    <div class="col-md-10">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>@comment.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                <span class="badge bg-primary">@Html.DisplayFor(modelItem => comment.Status)</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">@comment.Description</p>
+                            </div>
+                            <div class="card-footer d-flex justify-content-end gap-2">
+                                @if (userModel?.Id == comment.UserId)
+                                {
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                            onclick="fillEditForm('@comment.Id', '@comment.Description')">Edytuj</button>
+
+                                    <form method="post" asp-action="DeleteComment">
+                                        <input type="hidden" name="pageId" value="@Model.Id" />
+                                        <input type="hidden" name="commentId" value="@comment.Id" />
+                                        <button type="submit" class="btn btn-danger btn-sm">Usuń</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<script>
+    function fillEditForm(commentId, description) {
+        document.querySelector('input[name="commentId"]').value = commentId;
+        document.querySelector('input[name="description"]').value = description;
+    }
+</script>

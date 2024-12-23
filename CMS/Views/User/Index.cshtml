@@ -1,0 +1,108 @@
+@using CMS.Enums
+@using CMS.Models
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<CMS.Models.UserModel>
+
+@{
+    ViewData["Title"] = "Lista";
+
+    var userModel = ViewData["CurrentUserModel"] as UserModel;
+}
+
+<h1>Lista</h1>
+
+@if (userModel?.Role == UserRolesEnum.Administrator)
+{
+    <p><a asp-action="Create">Stwórz nowy rekord</a></p>
+}
+<hr/>
+<div class="row justify-content-center">
+    <div class="col-md-8 mx-auto">
+        <form method="get" asp-action="Index">
+            <div class="form-group">
+                <label for="FilterRole">@Html.DisplayNameFor(model => model.Role)</label>
+                <select name="role" id="FilterRole" class="form-control" asp-items="ViewBag.FilterRole">
+                    <option value="">Wszystkie</option>
+                </select>
+            </div>
+            <input type="submit" value="Filtruj" class="btn btn-primary"/>
+        </form>
+    </div>
+</div>
+<hr/>
+<table class="table">
+    <thead>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.IdentityUserId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreatedAt)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Role)
+        </th>
+        <th>
+            Powiązane podstrony
+        </th>
+        <th>
+            Powiązane wyświetlenia
+        </th>
+        <th>
+            Powiązane komentarze
+        </th>
+        <th>
+            Powiązane oceny
+        </th>
+        <th>
+            Średnia ocen
+        </th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.IdentityUser.UserName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Role)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Pages.Count)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Entries.Count)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Comments.Count)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Ratings.Count)
+            </td>
+            <td>
+                @{
+                    var averageRating = item.Ratings.Any()
+                        ? item.Ratings.Average(r => (int)r.Rating)
+                        : 0;
+                }
+                @averageRating.ToString("0.00")
+            </td>
+            <td>
+                @if (userModel?.Role == UserRolesEnum.Administrator)
+                {
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edytuj</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id">Usuń</a>
+                }
+
+                <a asp-action="Details" asp-route-id="@item.Id">Szczegóły</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

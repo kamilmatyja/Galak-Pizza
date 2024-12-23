@@ -1,0 +1,129 @@
+@using CMS.Enums
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model CMS.Models.PageModel
+
+@{
+    ViewData["Title"] = "Usuwanie";
+}
+
+<h1>Usuwanie rekordu</h1>
+
+<h3>Na pewno chcesz usunąć?</h3>
+<div>
+    <h4>Podstrona</h4>
+    <hr/>
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.UserId)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.User.IdentityUser.UserName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ParentPageId)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ParentPage.Title)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.CategoryId)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Category.Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.CreatedAt)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.CreatedAt)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Link)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Link)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Keywords)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Keywords)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Image)
+        </dt>
+        <dd class="col-sm-10">
+            @if (!string.IsNullOrEmpty(Model.Image))
+            {
+                <img src="data:image;base64,@Model.Image" class="image-form" alt="Image"/>
+            }
+            else
+            {
+                <span>No Image</span>
+            }
+        </dd>
+        <dt class="col-sm-2">
+            Powiązane wyświetlenia
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Entries.Count)
+        </dd>
+        <dt class="col-sm-2">
+            Powiązane komentarze
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Comments.Count)
+        </dd>
+        <dt class="col-sm-2">
+            Powiązane oceny
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Ratings.Count)
+        </dd>
+        <dt class="col-sm-2">
+            Średnia ocen
+        </dt>
+        <dd class="col-sm-10">
+            @{
+                var averageRating = Model.Ratings.Any()
+                    ? Model.Ratings.Average(r => (int)r.Rating)
+                    : 0;
+            }
+            @averageRating.ToString("0.00")
+        </dd>
+        @foreach (var content in Model.Contents)
+        {
+            <dt class="col-sm-2">
+                @($"{EnumExtensions.GetDisplayName(content.Type)} {content.Order}")
+            </dt>
+            <dd class="col-sm-10">
+                @if (content.Type == ContentTypesEnum.Image)
+                {
+                    <img src="data:image;base64,@content.Value" class="image-form" alt="Content Image"/>
+                }
+                else
+                {
+                    @Html.Raw(content.Value)
+                }
+            </dd>
+        }
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id"/>
+        <input type="submit" value="Usuń" class="btn btn-danger"/> |
+        <a asp-action="Index">Powrót do listy</a>
+    </form>
+</div>

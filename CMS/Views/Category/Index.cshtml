@@ -1,0 +1,83 @@
+@using CMS.Enums
+@using CMS.Models
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<CMS.Models.CategoryModel>
+
+@{
+    ViewData["Title"] = "Lista";
+
+    var userModel = ViewData["CurrentUserModel"] as UserModel;
+}
+
+<h1>Lista</h1>
+
+@if (userModel?.Role == UserRolesEnum.Administrator || userModel?.Role == UserRolesEnum.Author)
+{
+    <p><a asp-action="Create">Stwórz nowy rekord</a></p>
+}
+<hr/>
+<div class="row justify-content-center">
+    <div class="col-md-8 mx-auto">
+        <form method="get" asp-action="Index">
+            <div class="form-group">
+                <label for="FilterUserId">@Html.DisplayNameFor(model => model.UserId)</label>
+                <select name="userId" id="FilterUserId" class="form-control" asp-items="ViewBag.FilterUser">
+                    <option value="">Wszyscy</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="FilterName" class="control-label">@Html.DisplayNameFor(model => model.Name)</label>
+                <input type="text" name="name" id="FilterName" value="@ViewBag.FilterName" class="form-control"/>
+            </div>
+            <input type="submit" value="Filtruj" class="btn btn-primary"/>
+        </form>
+    </div>
+</div>
+<hr/>
+<table class="table">
+    <thead>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.UserId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreatedAt)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th>
+            Powiązane podstrony
+        </th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.User.IdentityUser.UserName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Pages.Count)
+            </td>
+            <td>
+                @if (userModel?.Role == UserRolesEnum.Administrator || userModel?.Role == UserRolesEnum.Author)
+                {
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edytuj</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id">Usuń</a>
+                }
+
+                <a asp-action="Details" asp-route-id="@item.Id">Szczegóły</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

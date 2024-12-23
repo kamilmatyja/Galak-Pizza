@@ -1,0 +1,250 @@
+@using CMS.Enums
+@using CMS.Models
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model CMS.Models.PageModel
+
+@{
+    ViewData["Title"] = "Tworzenie nowego rekordu";
+}
+
+<h1>Tworzenie nowego rekordu</h1>
+
+<h4>Podstrona</h4>
+<hr/>
+<div class="row justify-content-center">
+    <div class="col-md-8 mx-auto">
+        <form asp-action="Create" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="UserId" class="control-label"></label>
+                <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserId"></select>
+                <span asp-validation-for="UserId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ParentPageId" class="control-label"></label>
+                <select asp-for="ParentPageId" class="form-control" asp-items="ViewBag.ParentPageId"></select>
+                <span asp-validation-for="ParentPageId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CategoryId" class="control-label"></label>
+                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CreatedAt" class="control-label"></label>
+                <input asp-for="CreatedAt" class="form-control"/>
+                <span asp-validation-for="CreatedAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Link" class="control-label"></label>
+                <input asp-for="Link" class="form-control"/>
+                <span asp-validation-for="Link" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control"/>
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control"/>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Keywords" class="control-label"></label>
+                <input asp-for="Keywords" class="form-control"/>
+                <span asp-validation-for="Keywords" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Image" class="control-label"></label>
+                <input asp-for="Image" type="hidden" value="@(Model.Image)"/>
+                <input onchange="convertToBase64(this)" class="form-control" type="file"
+                       accept=".webp,.jpeg,.jpg,.png,.gif"/>
+                <span asp-validation-for="Image" class="text-danger"></span>
+
+                @if (!string.IsNullOrEmpty(Model.Image))
+                {
+                    <img src="data:image;base64,@Model.Image" class="image-form" alt="Image"/>
+                }
+            </div>
+            <div id="contentInputs">
+                @if (Model.Contents.Count > 0)
+                {
+                    var contents = ViewData["Contents"] as List<string>;
+
+                    var key = 1;
+                    foreach (var content in Model.Contents as List<PageContentModel>)
+                    {
+                        <div class="form-group">
+                            <input type="hidden" name="contentTypes" value="@content.Type.ToString()"/>
+
+                            @if (content.Type == ContentTypesEnum.Image)
+                            {
+                                <label>Sekcja @key zdjęcie</label>
+                                <input type="hidden" name="contentValues" value="@content.Value"/>
+                                <input type="file" name="contentFiles" onchange="convertToBase64(this)"
+                                       class="form-control" accept=".webp,.jpeg,.jpg,.png,.gif"/>
+                                <span
+                                    class="text-danger">
+                                    @(contents != null && key - 1 < contents.Count ? contents[key - 1] : "")
+                                </span>
+
+                                @if (!string.IsNullOrEmpty(content.Value))
+                                {
+                                    <img src="data:image;base64,@content.Value" class="image-form" alt="Image"/>
+                                }
+                            }
+                            else
+                            {
+                                <label>Sekcja @key tekst</label>
+                                <textarea name="contentValues" class="form-control">@content.Value</textarea>
+                                <span
+                                    class="text-danger">
+                                    @(contents != null && key - 1 < contents.Count ? contents[key - 1] : "")
+                                </span>
+                            }
+
+                            <div class="section-buttons">
+                                <button type="button" class="btn btn-secondary move-up" onclick="moveUp(this)">W górę
+                                </button>
+                                <button type="button" class="btn btn-secondary move-down" onclick="moveDown(this)">W
+                                    dół
+                                </button>
+                                <button type="button" class="btn btn-danger remove" onclick="removeSection(this)">Usuń
+                                </button>
+                            </div>
+                        </div>
+                        key++;
+                    }
+                }
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn btn-secondary" onclick="addTextContent()">Dodaj tekst</button>
+                <button type="button" class="btn btn-secondary" onclick="addImageContent()">Dodaj zdjęcie</button>
+                <input type="submit" value="Stwórz" class="btn btn-primary"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Powrót do listy</a>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.tiny.cloud/1/3s82wdph6wkpa2ooknt51ictqmpc1no3xy4pn2tpg9x1hwre/tinymce/7/tinymce.min.js"
+            referrerpolicy="origin"></script>
+
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            initTinyWysiwyg();
+        });
+
+        function initTinyWysiwyg() {
+            tinymce.init({
+                selector: 'textarea',
+                plugins: [
+                    'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+                menubar: true,
+                branding: false
+            });
+        }
+
+        function moveUp(button) {
+            const currentSection = button.closest('.form-group');
+            const previousSection = currentSection.previousElementSibling;
+
+            if (previousSection) {
+                tinymce.remove('textarea');
+
+                currentSection.parentNode.insertBefore(currentSection, previousSection);
+
+                initTinyWysiwyg();
+            }
+        }
+
+        function moveDown(button) {
+            const currentSection = button.closest('.form-group');
+            const nextSection = currentSection.nextElementSibling;
+
+            if (nextSection) {
+                tinymce.remove('textarea');
+
+                currentSection.parentNode.insertBefore(nextSection, currentSection);
+
+                initTinyWysiwyg();
+            }
+        }
+
+        function removeSection(button) {
+            const currentSection = button.closest('.form-group');
+            currentSection.remove();
+        }
+
+        function addTextContent() {
+            let contentInputs = document.getElementById('contentInputs');
+            const formGroups = contentInputs.getElementsByClassName("form-group");
+            let div = document.createElement('div');
+            div.className = 'form-group';
+            div.innerHTML = `<input type="hidden" name="contentTypes" value="@(ContentTypesEnum.Text.ToString())" />
+                             <label>Sekcja ${formGroups.length + 1} tekst</label>
+                             <textarea name="contentValues" class="form-control"></textarea>
+                             <span class="text-danger"></span>
+                             <div class="section-buttons">
+                                 <button type="button" class="btn btn-secondary" onclick="moveUp(this)">W górę</button>
+                                 <button type="button" class="btn btn-secondary" onclick="moveDown(this)">W dół</button>
+                                 <button type="button" class="btn btn-danger" onclick="removeSection(this)">Usuń</button>
+                             </div>`;
+            contentInputs.appendChild(div);
+
+            initTinyWysiwyg();
+        }
+
+        function addImageContent() {
+            let contentInputs = document.getElementById('contentInputs');
+            const formGroups = contentInputs.getElementsByClassName("form-group");
+            let div = document.createElement('div');
+            div.className = 'form-group';
+            div.innerHTML = `<input type="hidden" name="contentTypes" value="@(ContentTypesEnum.Image.ToString())" />
+                             <label>Sekcja ${formGroups.length + 1} zdjęcie</label>
+                             <input type="hidden" name="contentValues" value="" />
+                             <input type="file" name="contentFiles" onchange="convertToBase64(this)" class="form-control" accept=".webp,.jpeg,.jpg,.png,.gif" />
+                             <span class="text-danger"></span>
+                             <div class="section-buttons">
+                                 <button type="button" class="btn btn-secondary" onclick="moveUp(this)">W górę</button>
+                                 <button type="button" class="btn btn-secondary" onclick="moveDown(this)">W dół</button>
+                                 <button type="button" class="btn btn-danger" onclick="removeSection(this)">Usuń</button>
+                             </div>`;
+            contentInputs.appendChild(div);
+        }
+
+        function convertToBase64(input) {
+            const contentInputs = input.closest('#contentInputs');
+            const currentSection = input.closest('.form-group');
+
+            const file = input.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const image = e.target.result.split(',')[1];
+
+                    if (contentInputs !== null) {
+                        const contentValues = currentSection.querySelector('input[name="contentValues"]');
+
+                        contentValues.value = image;
+                    } else {
+                        const imageValue = document.querySelector('input[name="Image"]');
+
+                        imageValue.value = image;
+                    }
+                };
+
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+}
