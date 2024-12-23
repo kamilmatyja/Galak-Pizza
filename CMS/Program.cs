@@ -58,10 +58,5 @@ public class Program
         app.MapRazorPages();
 
         app.Run();
-
-        // dotnet ef database drop
-        // dotnet ef database update
-        // dotnet ef migrations add xxx
-        // dotnet ef migrations remove
     }
 }
