@@ -23,7 +23,9 @@
             </div>
             <div class="form-group">
                 <label asp-for="ParentPageId" class="control-label"></label>
-                <select asp-for="ParentPageId" class="form-control" asp-items="ViewBag.ParentPageId"></select>
+                <select asp-for="ParentPageId" class="form-control" asp-items="ViewBag.ParentPageId">
+                    <option value="">Brak</option>
+                </select>
                 <span asp-validation-for="ParentPageId" class="text-danger"></span>
             </div>
             <div class="form-group">

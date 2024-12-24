@@ -63,7 +63,7 @@
                 @Html.DisplayFor(modelItem => item.CreatedAt)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Name)
+                @(item.Name.Length > 50 ? item.Name.Substring(0, 50) + "..." : item.Name)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Pages.Count)

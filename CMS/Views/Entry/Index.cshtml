@@ -56,7 +56,7 @@
     {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Page.Title)
+                @(item.Page.Title.Length > 50 ? item.Page.Title.Substring(0, 50) + "..." : item.Page.Title)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.User.IdentityUser.UserName)

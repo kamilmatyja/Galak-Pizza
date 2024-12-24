@@ -99,10 +99,10 @@
                 @Html.DisplayFor(modelItem => item.User.IdentityUser.UserName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ParentPage.Title)
+                @(item.ParentPage?.Title.Length > 50 ? item.ParentPage.Title.Substring(0, 50) + "..." : item.ParentPage?.Title)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Category.Name)
+                @(item.Category.Name.Length > 50 ? item.Category.Name.Substring(0, 50) + "..." : item.Category.Name)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CreatedAt)
@@ -111,13 +111,13 @@
                 @Html.DisplayFor(modelItem => item.Link)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Title)
+                @(item.Title.Length > 50 ? item.Title.Substring(0, 50) + "..." : item.Title)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Description)
+                @(item.Description.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Keywords)
+                @(item.Keywords.Length > 50 ? item.Keywords.Substring(0, 50) + "..." : item.Keywords)
             </td>
             <td>
                 @if (!string.IsNullOrEmpty(item.Image))

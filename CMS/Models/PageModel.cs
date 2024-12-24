@@ -32,8 +32,8 @@ public class PageModel
     public DateTime CreatedAt { get; set; }
 
     [Display(Name = "Link")]
-    [RegularExpression("^[a-zA-Z0-9]*$",
-        ErrorMessage = "Pole 'Link' może zawierać tylko litery (a-z, A-Z) i cyfry (0-9).")]
+    [RegularExpression("^[a-zA-Z0-9-]*$",
+        ErrorMessage = "Pole 'Link' może zawierać tylko litery (a-z, A-Z), cyfry (0-9) i myślniki (-).")]
     [ReservedWordsValidator(new[] { "Category", "Comment", "Entry", "Page", "Rate", "User", "Identity" })]
     [MaxLength(50, ErrorMessage = "Pole 'Link' może mieć maksymalnie 50 znaków.")]
     public string? Link { get; set; }

@@ -66,29 +66,42 @@
     }
 
     <hr>
-    <p>Oceny: (Ilość: @Model.Ratings.Count, Średnia:
-        @{
-            var averageRating = Model.Ratings.Any()
-                ? Model.Ratings.Average(r => (int)r.Rating)
-                : 0;
-        }
+    @{
+        var acceptedRatings = Model.Ratings.Where(r => r.Status == InteractionStatusesEnum.Accepted);
+        var averageRating = acceptedRatings.Any()
+            ? acceptedRatings.Average(r => (int)r.Rating)
+            : 0;
+    }
+    <p>Oceny: (Ilość zaakceptowanych: @acceptedRatings.Count(), Średnia zaakceptowanych:
         @averageRating.ToString("0.00"))
     </p>
-    @if (userModel?.Id != null && userModel?.Id > 0 && !Model.Ratings.Any(r => r.UserId == userModel?.Id))
+    @if (userModel?.Id != null && userModel?.Id > 0)
     {
-        <div class="row justify-content-center">
-            <div class="col-md-8 mx-auto">
-                <form method="post" asp-action="RatePage">
-                    <input type="hidden" name="pageId" value="@Model.Id" />
-                    <div class="form-group">
-                        <label for="Rating" class="control-label">Ocena</label>
-                        <select name="rating" id="Rating" class="form-control" asp-items="ViewBag.Rating">
-                        </select>
-                    </div>
-                    <input type="submit" value="Zapisz" class="btn btn-primary"/>
-                </form>
+        var userRating = Model.Ratings.FirstOrDefault(r => r.UserId == userModel.Id);
+
+        if (userRating != null)
+        {
+            <p class="d-inline">Twoja ocena: @Html.DisplayFor(modelItem => userRating.Rating), status: @Html.DisplayFor(modelItem => userRating.Status) -</p>
+            <form method="post" asp-action="DeleteRating" class="d-inline">
+                <input type="hidden" name="pageId" value="@Model.Id" />
+                <button type="submit" class="btn btn-link p-0">Usuń swoją ocenę</button>
+            </form>
+        }
+        else
+        {
+            <div class="row justify-content-center">
+                <div class="col-md-8 mx-auto">
+                    <form method="post" asp-action="AddRating">
+                        <input type="hidden" name="pageId" value="@Model.Id" />
+                        <div class="form-group">
+                            <label for="Rating" class="control-label">Ocena</label>
+                            <select name="rating" id="Rating" class="form-control" asp-items="ViewBag.Rating"></select>
+                        </div>
+                        <input type="submit" value="Zapisz" class="btn btn-primary"/>
+                    </form>
+                </div>
             </div>
-        </div>
+        }
     }
     <hr>
     <p>Komentarze:</p>
@@ -96,7 +109,7 @@
     {
         <div class="row justify-content-center mb-4">
             <div class="col-md-8 mx-auto">
-                <form method="post" asp-action="CommentPage">
+                <form method="post" asp-action="PushComment">
                     <input type="hidden" name="pageId" value="@Model.Id" />
                     <input type="hidden" name="commentId" value="@(ViewData["CommentId"] ?? "")" />
                     <div class="form-group">

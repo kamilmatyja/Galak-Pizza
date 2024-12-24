@@ -75,8 +75,6 @@ public class PageController : Controller
             .Where(p => p.ParentPageId == pageModel.Id)
             .ToListAsync();
 
-        ViewData["UserId"] = userId;
-
         ViewData["Rating"] = EnumExtensions.ToSelectList<RatingsEnum>();
 
         return View(pageModel);
@@ -85,7 +83,7 @@ public class PageController : Controller
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RatePage(int pageId, RatingsEnum rating)
+    public async Task<IActionResult> AddRating(int pageId, RatingsEnum rating)
     {
         var page = await _context.PageModel.FirstOrDefaultAsync(m => m.Id == pageId);
         if (page == null) return NotFound();
@@ -118,7 +116,27 @@ public class PageController : Controller
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CommentPage(int pageId, int? commentId, string description)
+    public async Task<IActionResult> DeleteRating(int pageId)
+    {
+        var page = await _context.PageModel.FirstOrDefaultAsync(m => m.Id == pageId);
+        if (page == null) return NotFound();
+
+        var userId = GetUserId();
+
+        var rate = await _context.RateModel
+            .FirstOrDefaultAsync(r => r.PageId == pageId && r.UserId == userId);
+        if (rate == null) return NotFound();
+
+        _context.RateModel.Remove(rate);
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction("Home", new { link = page.Link });
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PushComment(int pageId, int? commentId, string description)
     {
         var page = await _context.PageModel.FirstOrDefaultAsync(m => m.Id == pageId);
         if (page == null) return NotFound();

@@ -72,7 +72,7 @@
     {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Page.Title)
+                @(item.Page.Title.Length > 50 ? item.Page.Title.Substring(0, 50) + "..." : item.Page.Title)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.User.IdentityUser.UserName)
@@ -81,7 +81,7 @@
                 @Html.DisplayFor(modelItem => item.CreatedAt)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Description)
+                @(item.Description.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Status)
